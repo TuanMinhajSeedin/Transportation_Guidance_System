@@ -32,5 +32,4 @@ This project is an intelligent **transportation guidance system** that leverages
 
 ---
 
-## 📂 Project Structure (Example)
 
