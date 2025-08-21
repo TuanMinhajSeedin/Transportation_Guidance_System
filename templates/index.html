@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚌 Transport Query System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .query-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .query-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .query-input {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .query-input input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .query-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .query-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .query-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .query-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .results-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .result-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item.success {
+            border-left-color: #28a745;
+        }
+
+        .result-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .result-message {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .result-data {
+            background: #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .corrections {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border: 1px solid #ffeaa7;
+        }
+
+        .correction-item {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .suggestions {
+            margin-top: 15px;
+        }
+
+        .suggestion-item {
+            background: #e3f2fd;
+            border-radius: 5px;
+            padding: 8px 12px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .suggestion-item:hover {
+            background: #bbdefb;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .chat-status {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .chat-body {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            min-height: 500px;
+        }
+
+        .chat-messages {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.bot .message-avatar {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .message-content {
+            flex: 1;
+            max-width: 70%;
+        }
+
+        .message.user .message-content {
+            text-align: right;
+        }
+
+        .message-bubble {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            display: inline-block;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .message.user .message-time {
+            text-align: right;
+        }
+
+        .chat-input-section {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .chat-send-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .examples-sidebar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-left: 1px solid #e9ecef;
+        }
+
+        .examples-sidebar h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .example-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .example-category {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .example-category:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .category-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .example-queries {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .example-query-btn {
+            background: #e3f2fd;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            color: #333;
+        }
+
+        .example-query-btn:hover {
+            background: #bbdefb;
+            transform: translateX(3px);
+        }
+
+        .example-query-btn i {
+            margin-right: 5px;
+            color: #667eea;
+        }
+
+        .data-display {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .data-display h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.85rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .corrections {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+
+        .corrections strong {
+            color: #856404;
+        }
+
+        .correction-item {
+            margin: 3px 0;
+            color: #856404;
+        }
+
+        .suggestions {
+            margin-top: 10px;
+        }
+
+        .suggestion-item {
+            background: #e3f2fd;
+            border-radius: 5px;
+            padding: 6px 10px;
+            margin: 3px 0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .suggestion-item:hover {
+            background: #bbdefb;
+        }
+
+        @media (max-width: 768px) {
+            .chat-body {
+                grid-template-columns: 1fr;
+            }
+            
+            .examples-sidebar {
+                border-left: none;
+                border-top: 1px solid #e9ecef;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+
+        .status-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .status-value.success {
+            color: #28a745;
+        }
+
+        .status-value.error {
+            color: #dc3545;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-bus"></i> Transport Query System</h1>
+            <p>Ask questions about transport fares and routes with intelligent spell correction</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Neo4j Status</div>
+                    <div class="status-value" id="neo4j-status">Checking...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Total Places</div>
+                    <div class="status-value" id="total-places">-</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Total Routes</div>
+                    <div class="status-value" id="total-routes">-</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Average Fare</div>
+                    <div class="status-value" id="avg-fare">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2><i class="fas fa-comments"></i> Transport Query Chat</h2>
+                <div class="chat-status">
+                    <i class="fas fa-circle" id="status-indicator"></i>
+                    <span id="status-text">Ready</span>
+                </div>
+            </div>
+            
+            <div class="chat-body">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                Hello! I'm your transport assistant. I can help you find fares, compare routes, and get transport information. Try clicking on an example query or type your own question!
+                            </div>
+                            <div class="message-time" id="welcome-time"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="examples-sidebar">
+                    <h3><i class="fas fa-lightbulb"></i> Example Queries</h3>
+                    <div class="example-categories" id="example-categories">
+                        <!-- Example categories will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-section">
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chat-input" placeholder="Type your transport question here..." autocomplete="off">
+                    <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentQuery = '';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatus();
+            loadExampleCategories();
+            setupChatEventListeners();
+            setWelcomeTime();
+        });
+
+        function setupChatEventListeners() {
+            const chatInput = document.getElementById('chat-input');
+            const chatSendBtn = document.getElementById('chat-send-btn');
+
+            // Enter key to send message
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+
+            // Input validation
+            chatInput.addEventListener('input', function() {
+                chatSendBtn.disabled = !this.value.trim();
+            });
+        }
+
+        function setWelcomeTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('welcome-time').textContent = timeString;
+        }
+
+        async function loadStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                document.getElementById('neo4j-status').textContent = data.neo4j_connected ? 'Connected' : 'Disconnected';
+                document.getElementById('neo4j-status').className = data.neo4j_connected ? 'status-value success' : 'status-value error';
+                
+                if (data.statistics) {
+                    document.getElementById('total-places').textContent = data.statistics.total_places || 0;
+                    document.getElementById('total-routes').textContent = data.statistics.total_routes || 0;
+                    document.getElementById('avg-fare').textContent = `Rs. ${data.statistics.average_fare || 0}`;
+                }
+
+                // Update chat status
+                const statusIndicator = document.getElementById('status-indicator');
+                const statusText = document.getElementById('status-text');
+                
+                if (data.neo4j_connected) {
+                    statusIndicator.style.color = '#28a745';
+                    statusText.textContent = 'Connected to Database';
+                } else {
+                    statusIndicator.style.color = '#dc3545';
+                    statusText.textContent = 'Database Disconnected';
+                }
+            } catch (error) {
+                console.error('Error loading status:', error);
+                document.getElementById('status-indicator').style.color = '#dc3545';
+                document.getElementById('status-text').textContent = 'Connection Error';
+            }
+        }
+
+        async function loadExampleCategories() {
+            try {
+                const response = await fetch('/api/examples');
+                const data = await response.json();
+                
+                const categoriesContainer = document.getElementById('example-categories');
+                categoriesContainer.innerHTML = '';
+                
+                data.examples.forEach(category => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'example-category';
+                    
+                    let categoryHTML = `<div class="category-title">${category.category}</div>`;
+                    categoryHTML += '<div class="example-queries">';
+                    
+                    category.examples.forEach(example => {
+                        categoryHTML += `
+                            <button class="example-query-btn" onclick="useExampleQuery('${example.query.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-arrow-right"></i>
+                                ${example.query}
+                            </button>
+                        `;
+                    });
+                    
+                    categoryHTML += '</div>';
+                    categoryDiv.innerHTML = categoryHTML;
+                    categoriesContainer.appendChild(categoryDiv);
+                });
+            } catch (error) {
+                console.error('Error loading example categories:', error);
+            }
+        }
+
+        function useExampleQuery(query) {
+            document.getElementById('chat-input').value = query;
+            document.getElementById('chat-send-btn').disabled = false;
+            sendChatMessage();
+        }
+
+        async function sendChatMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const query = chatInput.value.trim();
+            
+            if (!query) return;
+            
+            currentQuery = query;
+            
+            // Add user message to chat
+            addChatMessage('user', query);
+            
+            // Clear input
+            chatInput.value = '';
+            document.getElementById('chat-send-btn').disabled = true;
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+                
+                const result = await response.json();
+                
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add bot response
+                addBotResponse(result);
+                
+            } catch (error) {
+                removeTypingIndicator();
+                addChatMessage('bot', 'Sorry, I encountered an error processing your query. Please try again.');
+            }
+        }
+
+        function addChatMessage(sender, message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatarIcon = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="${avatarIcon}"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">${message}</div>
+                    <div class="message-time">${timeString}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addBotResponse(result) {
+            const chatMessages = document.getElementById('chat-messages');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            
+            let responseContent = '';
+            
+            if (result.success) {
+                responseContent = `<div class="message-bubble">${result.message}</div>`;
+                
+                // Add data display if available
+                if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+                    responseContent += createChatDataDisplay(result.data);
+                }
+                
+                // Add corrections if any
+                if (result.corrections && result.corrections.length > 0) {
+                    responseContent += createCorrectionsDisplay(result.corrections);
+                }
+                
+                // Add suggestions if any
+                if (result.suggestions && result.suggestions.length > 0) {
+                    responseContent += createSuggestionsDisplay(result.suggestions);
+                }
+            } else {
+                responseContent = `<div class="message-bubble">Sorry, I couldn't process your query: ${result.message}</div>`;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    ${responseContent}
+                    <div class="message-time">${timeString}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function createChatDataDisplay(data) {
+            if (!data || data.length === 0) return '';
+            
+            const keys = Object.keys(data[0]);
+            let html = '<div class="data-display"><h4>Results:</h4><table class="data-table"><thead><tr>';
+            
+            // Headers
+            keys.forEach(key => {
+                html += `<th>${key.replace(/_/g, ' ').toUpperCase()}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Rows (limit to first 5 for chat)
+            data.slice(0, 5).forEach(row => {
+                html += '<tr>';
+                keys.forEach(key => {
+                    html += `<td>${row[key]}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            if (data.length > 5) {
+                html += `<p style="font-size: 0.8rem; color: #6c757d; margin-top: 5px;">Showing first 5 of ${data.length} results</p>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function createCorrectionsDisplay(corrections) {
+            let html = '<div class="corrections"><strong>Spell Corrections:</strong>';
+            corrections.forEach(correction => {
+                html += `<div class="correction-item">"${correction.original}" → "${correction.corrected}" (${correction.method})</div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function createSuggestionsDisplay(suggestions) {
+            let html = '<div class="suggestions"><strong>Suggestions:</strong>';
+            suggestions.forEach(suggestion => {
+                html += `<div class="suggestion-item" onclick="useSuggestion('${suggestion}')">${suggestion}</div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typing-indicator';
+            
+            typingDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <i class="fas fa-spinner fa-spin"></i> Processing...
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function useSuggestion(suggestion) {
+            document.getElementById('chat-input').value = suggestion;
+            document.getElementById('chat-send-btn').disabled = false;
+            sendChatMessage();
+        }
+
+        // Auto-refresh status every 30 seconds
+        setInterval(loadStatus, 30000);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,9 @@
+flask
+neo4j
+requests
+openai
+python-dotenv
+fuzzywuzzy
+python-Levenshtein
+pandas
+numpy
